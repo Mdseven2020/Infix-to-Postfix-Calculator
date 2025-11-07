@@ -1,0 +1,335 @@
+/*
+Michael Green
+CS121
+Assignment 1
+
+Began on 10/15/2025
+Goals:
+Program to turn Infix notation into Postfix notation
+Seperate files
+
+Day 1: 2pm to 4pm.
+Good progress. First I figured out how to convert Infix to postfix. Then I started on the interface of the code.
+
+Day 2: 3pm to 5pm
+Good. Finished interface and started on main
+Day 3: 1pm to 5pm
+Got infix to postfix working
+Day 4: 6pm to 8pm
+Did the full expression from postfix and finished assigment
+
+
+*/
+
+#include <iostream>
+#include <cctype>
+using namespace std;
+
+//Linked List Interface:
+
+class Linkedlist{
+    private:
+    struct node{
+        int info;
+        node * next;
+
+    };
+    typedef node * nodePtr;
+    nodePtr head;
+    int count; //dunno if i need this
+
+    public:
+    Linkedlist();
+    ~Linkedlist();
+    
+    void addnode(char x);
+    void deletenode(char x);
+    char firstnode();
+    void print();
+    int size();
+    //void firstnode();
+};
+
+
+    Linkedlist::Linkedlist(){
+        head = NULL;
+        count = 0;
+    }
+    Linkedlist::~Linkedlist(){
+        nodePtr p = head,n;
+        while(p!=NULL){
+            n=p;
+            p=p->next;
+            delete n;
+        }
+    }
+
+
+
+    //definitions:
+    void Linkedlist::addnode(char x){
+        nodePtr n;
+        n = new node;
+        n->info = x;
+        count++;
+        if(head==NULL){
+            head = n;
+            n->next = NULL;
+        }else{
+            nodePtr temp = head;
+            n->next = temp;
+            head = n;
+        }
+    }
+//END OF DAY 1 2pm - 4 pm
+      
+/*
+        void Linkedlist::deletenode(char x){
+            nodePtr prev = NULL;
+            nodePtr curr = head;
+            while(curr!=NULL&& curr->info != x){
+            prev = curr;
+            curr = curr->next; 
+            }
+            if (x == curr->info){
+                if(curr==head){
+                    head=head->next;
+                }else{
+                    prev->next=curr->next;
+                    delete curr;
+                    count--;
+                }
+            }
+        }
+*/
+
+    void Linkedlist::deletenode(char x){
+        nodePtr prev = NULL;
+        nodePtr curr = head;
+        while(curr != NULL && curr->info !=x){
+            prev = curr;
+            curr = curr->next;
+        }
+        if (curr==NULL){
+            return; // add failsafe?
+
+        }
+        if(curr==head){
+            head=head->next;
+        }else{
+            prev->next=curr->next;
+        }
+        delete curr;
+        count--;
+    }
+
+
+
+    char Linkedlist::firstnode(){
+        if (head==NULL){
+            cout<<"list empty"<<endl;
+            return '\0';
+        }
+        return head->info;
+    }
+    void Linkedlist::print(){
+        nodePtr p = head;
+        while(p!=NULL){
+            cout<<p->info<<endl;
+            p=p->next;
+        }
+    }
+
+    int Linkedlist::size(){
+        return count;
+    }
+
+
+
+
+// Stack Interface:
+
+class Stack{
+
+    private:
+    Linkedlist topPtr;
+    public:
+    Stack();
+    ~Stack();
+
+    void push(char x); //pushes onto top of stack
+    int pop(); //Removes top item from stack
+    void print(); //prints stack
+    int isEmpty();
+    char top();
+};
+    //definitions
+    Stack::Stack(){};
+    Stack::~Stack(){};
+
+    void Stack::push(char x){
+        topPtr.addnode(x);  
+    }
+
+    int Stack::isEmpty(){
+        int n = topPtr.size();
+        return (n==0);
+    }
+    
+    int Stack::pop(){
+        if(isEmpty()){
+            return -1;
+        }
+        char n = topPtr.firstnode();
+        topPtr.deletenode(n);
+        return n;
+    }
+    void Stack::print(){
+        topPtr.print();
+    }
+    char Stack::top(){
+        return topPtr.firstnode();
+
+    }
+
+
+    int Pevaluation(int x, int y, char c){
+        //int x1 = x - '0';
+        //int y1 = y = '0';
+
+        if(c == '+'){
+            return x+y;
+        }
+        if(c == '-'){
+            return x-y;
+        }
+        if(c == '*'){
+            return x*y;
+        }
+        if(c == '/'){
+            return x/y;
+        }else{
+            return -0;
+        }
+
+    }
+
+
+
+
+
+int main(){
+
+    cout<<"Infix to Postfix Program!"<<endl;
+    //loop will go here
+
+    Stack stack;
+    char infix[100]={};
+    //user input;
+    cout<<"enter values! use digits(0-9), operators (+,-,/,*), and parenthesis ('(',')') use ! to end your expression"<<endl;
+    int i=0; //used for infix array
+    int z=0; //used for postfix array
+    char poped;
+    char c = '\0';
+    while(c != '!'){
+        cin>>c;
+        if(c=='!'){
+            break;
+        }
+        //cout<<c<<endl;
+        infix[i++]=c;
+        
+    }
+    //printing Infix expression for testing purposes
+    //2.
+        //infix[i++]=')';
+        cout<<"Infix:"<<endl;
+        for(int x=0;x<i;x++){
+            cout<<infix[x];
+        }
+        cout<<endl;
+        infix[i++]=')';
+
+
+    char postfix[100] = {};
+    postfix[z]='\0';
+    //1.
+    stack.push('(');
+    //3.
+    i=0;
+    z=0;
+
+    while(stack.isEmpty()!=1){
+        if(isdigit(infix[i])){
+            postfix[z]=infix[i];
+            z++;
+            i++;
+        }
+        if(infix[i]=='('){
+            stack.push('(');
+            i++;
+        }
+        if((infix[i]=='+')||(infix[i]=='-')||(infix[i]=='*')||(infix[i]=='/')){
+
+            while(stack.top()=='*'||stack.top()=='/'){
+                int temp = stack.top();
+                postfix[z]=temp;
+                z++;
+                stack.pop();
+            }
+            stack.push(infix[i]);
+            i++;
+        }
+        if(infix[i]==')'){
+            while(stack.top()!='('){
+                int temp = stack.top();
+                postfix[z]=temp;
+                z++;
+                stack.pop();
+            }
+            stack.pop();
+            i++;
+        }
+    }
+
+    postfix[z]='\0';
+
+    cout<<"Postfix:"<<endl;
+        for(int x=0;x<i;x++){
+
+            cout<<postfix[x];
+        }
+    cout<<endl;
+
+    //Postfix evaluation
+
+    Stack stack2;
+
+    i = 0;
+    while(postfix[i]!='\0'){
+
+        if(isdigit(postfix[i])){
+            int j = postfix[i]-'0';
+            stack2.push(j);
+            i++;
+        }
+        if(postfix[i]=='+'||postfix[i]=='-'||postfix[i]=='*'||postfix[i]=='/'){
+            int temp1=stack2.top();
+            stack2.pop();
+            int temp2=stack2.top();
+            stack2.pop();
+            int temp3;
+            temp3 = Pevaluation(temp2,temp1,postfix[i]);
+            stack2.push(temp3);
+            i++;
+
+        }
+
+
+
+    }
+
+    int num = stack2.top();
+    cout<<"Full answer:"<<endl;
+    cout<<num;
+}
